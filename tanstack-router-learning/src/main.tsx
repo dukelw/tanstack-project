@@ -2,9 +2,10 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
-import { AuthProvider, useAuth } from "./auth";
 import "./styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useAuth } from "./hooks/useAuth";
+import { AuthProvider } from "./context/auth/AuthProvider";
 
 const router = createRouter({
   routeTree,

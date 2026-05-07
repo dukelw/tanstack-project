@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { getTodos } from "../todoApi";
-import { todoKeys } from "../todoKeys";
+import { getTodos } from "../service/todoService";
+import { todoKeys } from "./todoKeys";
 
 export function useTodosQuery() {
   return useQuery({
