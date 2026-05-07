@@ -9,7 +9,7 @@ type User = {
   };
 };
 
-export const Route = createFileRoute("/users/")({
+export const Route = createFileRoute("/(public)/users/")({
   validateSearch: (search: Record<string, unknown>) => {
     return {
       q: typeof search.q === "string" ? search.q : "",

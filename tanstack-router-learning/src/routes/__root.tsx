@@ -33,8 +33,6 @@ function RootComponent() {
         >
           <NavItem to="/">Home</NavItem>
 
-          <NavItem to="/hello">Hello</NavItem>
-
           <NavItem to="/dashboard">Dashboard</NavItem>
 
           <NavItem to="/users">Users</NavItem>
