@@ -39,6 +39,8 @@ function RootComponent() {
 
           <NavItem to="/profile">Profile</NavItem>
 
+          <NavItem to="/todos">Todos</NavItem>
+
           <NavItem to="/login">Login</NavItem>
         </nav>
 

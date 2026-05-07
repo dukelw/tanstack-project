@@ -9,16 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as publicIndexRouteImport } from './routes/(public)/index'
 import { Route as protectedAuthenticatedRouteImport } from './routes/(protected)/_authenticated'
 import { Route as publicUsersIndexRouteImport } from './routes/(public)/users/index'
 import { Route as publicUsersUserIdRouteImport } from './routes/(public)/users/$userId'
 import { Route as publicauthLoginRouteImport } from './routes/(public)/(auth)/login'
+import { Route as protectedAuthenticatedTodosIndexRouteImport } from './routes/(protected)/_authenticated/todos/index'
 import { Route as protectedAuthenticatedProfileIndexRouteImport } from './routes/(protected)/_authenticated/profile/index'
 import { Route as protectedAuthenticatedDashboardIndexRouteImport } from './routes/(protected)/_authenticated/dashboard/index'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
+const publicIndexRoute = publicIndexRouteImport.update({
+  id: '/(public)/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
@@ -41,6 +42,12 @@ const publicauthLoginRoute = publicauthLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const protectedAuthenticatedTodosIndexRoute =
+  protectedAuthenticatedTodosIndexRouteImport.update({
+    id: '/todos/',
+    path: '/todos/',
+    getParentRoute: () => protectedAuthenticatedRoute,
+  } as any)
 const protectedAuthenticatedProfileIndexRoute =
   protectedAuthenticatedProfileIndexRouteImport.update({
     id: '/profile/',
@@ -55,30 +62,33 @@ const protectedAuthenticatedDashboardIndexRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof publicIndexRoute
   '/login': typeof publicauthLoginRoute
   '/users/$userId': typeof publicUsersUserIdRoute
   '/users/': typeof publicUsersIndexRoute
   '/dashboard/': typeof protectedAuthenticatedDashboardIndexRoute
   '/profile/': typeof protectedAuthenticatedProfileIndexRoute
+  '/todos/': typeof protectedAuthenticatedTodosIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/': typeof publicIndexRoute
   '/login': typeof publicauthLoginRoute
   '/users/$userId': typeof publicUsersUserIdRoute
   '/users': typeof publicUsersIndexRoute
   '/dashboard': typeof protectedAuthenticatedDashboardIndexRoute
   '/profile': typeof protectedAuthenticatedProfileIndexRoute
+  '/todos': typeof protectedAuthenticatedTodosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/(protected)/_authenticated': typeof protectedAuthenticatedRouteWithChildren
+  '/(public)/': typeof publicIndexRoute
   '/(public)/(auth)/login': typeof publicauthLoginRoute
   '/(public)/users/$userId': typeof publicUsersUserIdRoute
   '/(public)/users/': typeof publicUsersIndexRoute
   '/(protected)/_authenticated/dashboard/': typeof protectedAuthenticatedDashboardIndexRoute
   '/(protected)/_authenticated/profile/': typeof protectedAuthenticatedProfileIndexRoute
+  '/(protected)/_authenticated/todos/': typeof protectedAuthenticatedTodosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -89,22 +99,31 @@ export interface FileRouteTypes {
     | '/users/'
     | '/dashboard/'
     | '/profile/'
+    | '/todos/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/users/$userId' | '/users' | '/dashboard' | '/profile'
+  to:
+    | '/'
+    | '/login'
+    | '/users/$userId'
+    | '/users'
+    | '/dashboard'
+    | '/profile'
+    | '/todos'
   id:
     | '__root__'
-    | '/'
     | '/(protected)/_authenticated'
+    | '/(public)/'
     | '/(public)/(auth)/login'
     | '/(public)/users/$userId'
     | '/(public)/users/'
     | '/(protected)/_authenticated/dashboard/'
     | '/(protected)/_authenticated/profile/'
+    | '/(protected)/_authenticated/todos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   protectedAuthenticatedRoute: typeof protectedAuthenticatedRouteWithChildren
+  publicIndexRoute: typeof publicIndexRoute
   publicauthLoginRoute: typeof publicauthLoginRoute
   publicUsersUserIdRoute: typeof publicUsersUserIdRoute
   publicUsersIndexRoute: typeof publicUsersIndexRoute
@@ -112,11 +131,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/(public)/': {
+      id: '/(public)/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof publicIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(protected)/_authenticated': {
@@ -147,6 +166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof publicauthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(protected)/_authenticated/todos/': {
+      id: '/(protected)/_authenticated/todos/'
+      path: '/todos'
+      fullPath: '/todos/'
+      preLoaderRoute: typeof protectedAuthenticatedTodosIndexRouteImport
+      parentRoute: typeof protectedAuthenticatedRoute
+    }
     '/(protected)/_authenticated/profile/': {
       id: '/(protected)/_authenticated/profile/'
       path: '/profile'
@@ -167,6 +193,7 @@ declare module '@tanstack/react-router' {
 interface protectedAuthenticatedRouteChildren {
   protectedAuthenticatedDashboardIndexRoute: typeof protectedAuthenticatedDashboardIndexRoute
   protectedAuthenticatedProfileIndexRoute: typeof protectedAuthenticatedProfileIndexRoute
+  protectedAuthenticatedTodosIndexRoute: typeof protectedAuthenticatedTodosIndexRoute
 }
 
 const protectedAuthenticatedRouteChildren: protectedAuthenticatedRouteChildren =
@@ -175,6 +202,8 @@ const protectedAuthenticatedRouteChildren: protectedAuthenticatedRouteChildren =
       protectedAuthenticatedDashboardIndexRoute,
     protectedAuthenticatedProfileIndexRoute:
       protectedAuthenticatedProfileIndexRoute,
+    protectedAuthenticatedTodosIndexRoute:
+      protectedAuthenticatedTodosIndexRoute,
   }
 
 const protectedAuthenticatedRouteWithChildren =
@@ -183,8 +212,8 @@ const protectedAuthenticatedRouteWithChildren =
   )
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   protectedAuthenticatedRoute: protectedAuthenticatedRouteWithChildren,
+  publicIndexRoute: publicIndexRoute,
   publicauthLoginRoute: publicauthLoginRoute,
   publicUsersUserIdRoute: publicUsersUserIdRoute,
   publicUsersIndexRoute: publicUsersIndexRoute,

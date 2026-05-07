@@ -1,154 +1,166 @@
-# TanStack Router Loader & Search Params
+# TanStack Query CRUD Example
 
-This page demonstrates how TanStack Router handles:
+This project demonstrates a scalable CRUD architecture using:
 
-- URL search params
-- Type-safe validation
-- Route loaders
-- External API fetching
-- Pending/loading states
+- TanStack Router
+- TanStack Query
+- Feature-based folder structure
+- Mutations & cache updates
+- Query keys
+- Protected routes
 
 ---
 
-## Search Params
+## Todo CRUD
 
-The page uses URL-based search params.
+The app includes a Todo CRUD page with:
+
+- Fetch todos
+- Create todo
+- Delete todo
+- Local cache updates
+- Protected route access
+
+Route:
+
+```
+/todos
+```
+
+## Architecture
+
+The project separates:
+
+- Routing
+- UI
+- API logic
+- Query logic
+- Mutation logic
+
+This creates a cleaner and more scalable structure.
+
+### Folder Structure
+
+```
+src/
+├── routes/
+│   └── (protected)/
+│       └── _authenticated/
+│           └── todos.tsx
+│
+├── features/
+│   └── todos/
+│       ├── api/
+│       ├── queries/
+│       ├── mutations/
+│       └── todoKeys.ts
+```
+
+## Why Routes Stay Inside `routes/`
+
+TanStack Router uses file-based routing. Only files inside `src/routes` are converted into application routes.
 
 Example:
 
 ```
-/users?q=john
+routes/_authenticated/todos.tsx → /todos
 ```
 
-The URL becomes the single source of truth. This allows:
+If a route file is placed inside `features/todos/`, it will **not** be registered as a route.
 
-- Shareable URLs
-- Browser back/forward support
-- Persistent search state
-- Deep linking
+## Feature-Based Architecture
 
-### `validateSearch`
+Business logic is organized by feature/domain.
 
-TanStack Router provides `validateSearch()` to parse and validate search params.
+```
+features/
+├── todos/
+├── auth/
+├── users/
+```
+
+Each feature manages its own:
+
+- API calls
+- Queries
+- Mutations
+- Types
+- Components
+
+This structure scales much better for large applications.
+
+### Query Separation
+
+Queries are separated into dedicated hooks.
 
 ```tsx
-validateSearch: (search) => {
-  return {
-    q: typeof search.q === "string" ? search.q : "",
-  };
-};
+useTodosQuery();
 ```
 
-This function:
+- **Location:** `features/todos/queries/`
+- **Purpose:** Fetch server state, cache data, handle loading states
 
-- Validates incoming query params
-- Transforms values
-- Provides fallback defaults
-- Creates fully typed search params
+### Mutation Separation
 
-After validation:
+Mutations are separated from UI components.
 
 ```tsx
-const search = Route.useSearch();
+useCreateTodoMutation();
+useDeleteTodoMutation();
 ```
 
-becomes type-safe.
+- **Location:** `features/todos/mutations/`
+- **Purpose:** Create/update/delete server state, update query cache, encapsulate mutation logic
+
+## Query Keys
+
+TanStack Query caches data using query keys.
 
 ```tsx
-search.q; // string
+["todos"];
 ```
 
-instead of:
+Defined in `todoKeys.ts`. This allows:
+
+- Cache sharing
+- Automatic refetching
+- Query invalidation
+- Type-safe cache access
+
+## Cache Updates
+
+After mutations succeed, the cache is updated manually.
 
 ```tsx
-// unknown
-```
-
-### `loaderDeps`
-
-`loaderDeps()` tells TanStack Router when the loader should rerun.
-
-```tsx
-loaderDeps: ({ search }) => ({
-  q: search.q,
-});
-```
-
-When `q` changes:
-
-```
-URL changes → loader reruns → data refreshes
-```
-
-## Route Loader
-
-The route uses `loader()` to fetch external API data.
-
-```tsx
-loader: async ({ deps }) => {
-  const response = await fetch(...);
-  return data;
-};
-```
-
-Unlike `useEffect`, loaders run **before** rendering the page.
-
-Flow:
-
-```
-Navigate to route → Loader runs → Data fetched → Component renders
+queryClient.setQueryData();
 ```
 
 Benefits:
 
-- Cleaner architecture
-- Better SSR support
-- Easier prefetching
-- Centralized data loading
+- Instant UI updates
+- No extra refetch
+- Better UX
 
-### Pending Component
+## Protected Route
 
-While the loader is fetching data, `pendingComponent` is displayed automatically.
+The Todo page is protected using `_authenticated.tsx`. Authentication is checked inside `beforeLoad()`. Unauthenticated users are redirected to `/login`.
 
-```tsx
-pendingComponent: () => <div>Loading...</div>;
-```
+## Why This Architecture Is Scalable
 
-## External API Example
+This structure keeps:
 
-This demo fetches users from:
+- Pages clean
+- Business logic isolated
+- Server state centralized
+- Features modular
 
-```
-https://jsonplaceholder.typicode.com/users
-```
+It becomes much easier to maintain as the application grows.
 
-and filters them based on the search query.
+## Tech Stack
 
-## Why This Is Powerful
-
-TanStack Router combines:
-
-- Routing
-- Search params
-- Validation
-- Data loading
-
-into a single route-based system. This creates a cleaner and more scalable architecture compared to `useEffect` + `useState` + `react-router`.
-
-## Production Setup
-
-In real applications, loaders are commonly combined with:
-
+- React
+- TypeScript
+- TanStack Router
 - TanStack Query
-- Zod
-- Server-side rendering
-- Prefetching
-- Streaming
-
-Example:
-
-```tsx
-queryClient.ensureQueryData();
-```
-
-for caching and background refetching.
+- TailwindCSS
+- Vite
