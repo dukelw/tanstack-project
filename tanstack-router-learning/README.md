@@ -1,136 +1,154 @@
-# TanStack Router Authentication Example
+# TanStack Router Loader & Search Params
 
-This project demonstrates how to implement protected routes using:
+This page demonstrates how TanStack Router handles:
 
-- [TanStack Router](https://tanstack.com/router)
-- React Context API
-- Route Guards (`beforeLoad`)
-- Pathless Layout Routes (`_authenticated`)
-- TailwindCSS UI
+- URL search params
+- Type-safe validation
+- Route loaders
+- External API fetching
+- Pending/loading states
 
 ---
 
-## Authentication Architecture
+## Search Params
 
-The authentication flow is separated into 2 parts:
-
-### 1. Auth Context
-
-Authentication state is managed outside the router using React Context.
-
-```tsx
-<AuthProvider>
-  <RouterProvider router={router} />
-</AuthProvider>
-```
-
-The auth context provides:
-
-- `isAuthenticated`
-- `login()`
-- `logout()`
-
-This keeps authentication reactive and globally accessible.
-
-### 2. Protected Routes with `_authenticated`
-
-TanStack Router supports pathless layout routes using `_`.
-
-Example structure:
-
-```
-routes/
-├── _authenticated.tsx
-├── _authenticated/
-│   ├── profile.tsx
-│   └── dashboard.tsx
-```
-
-Routes inside `_authenticated/` are automatically protected. The URL does **not** contain `_authenticated`.
+The page uses URL-based search params.
 
 Example:
 
 ```
-_authenticated/profile.tsx → /profile
+/users?q=john
 ```
 
-### Route Guard
+The URL becomes the single source of truth. This allows:
 
-Authentication is checked using `beforeLoad()`.
+- Shareable URLs
+- Browser back/forward support
+- Persistent search state
+- Deep linking
+
+### `validateSearch`
+
+TanStack Router provides `validateSearch()` to parse and validate search params.
 
 ```tsx
-beforeLoad: ({ context }) => {
-  if (!context.auth.isAuthenticated) {
-    throw redirect({
-      to: "/login",
-    });
-  }
+validateSearch: (search) => {
+  return {
+    q: typeof search.q === "string" ? search.q : "",
+  };
 };
 ```
 
-If the user is not logged in:
+This function:
 
-```
-/profile → redirect to /login
-```
+- Validates incoming query params
+- Transforms values
+- Provides fallback defaults
+- Creates fully typed search params
 
-### Router Context Injection
-
-Auth state is injected into TanStack Router context.
+After validation:
 
 ```tsx
-const router = createRouter({
-  routeTree,
-  context: {
-    auth: undefined!,
-  },
+const search = Route.useSearch();
+```
+
+becomes type-safe.
+
+```tsx
+search.q; // string
+```
+
+instead of:
+
+```tsx
+// unknown
+```
+
+### `loaderDeps`
+
+`loaderDeps()` tells TanStack Router when the loader should rerun.
+
+```tsx
+loaderDeps: ({ search }) => ({
+  q: search.q,
 });
 ```
 
-Then passed into `RouterProvider`:
+When `q` changes:
 
-```tsx
-<RouterProvider router={router} context={{ auth }} />
+```
+URL changes → loader reruns → data refreshes
 ```
 
-This allows all routes to access auth state safely.
+## Route Loader
 
-### Benefits of This Approach
+The route uses `loader()` to fetch external API data.
 
-- Clean architecture
-- Centralized authentication
-- Reusable route protection
-- Type-safe auth context
-- Easy to scale
+```tsx
+loader: async ({ deps }) => {
+  const response = await fetch(...);
+  return data;
+};
+```
 
-Works well with:
+Unlike `useEffect`, loaders run **before** rendering the page.
 
-- JWT
-- Cookies
-- Zustand / Redux
-- React Query
+Flow:
 
-### UI
+```
+Navigate to route → Loader runs → Data fetched → Component renders
+```
 
-The UI uses:
+Benefits:
 
-- TailwindCSS
-- Dark modern dashboard style
-- Glassmorphism effects
-- Responsive navigation
+- Cleaner architecture
+- Better SSR support
+- Easier prefetching
+- Centralized data loading
 
-### Example Protected Pages
+### Pending Component
 
-- `/profile`
-- `/dashboard`
-- `/settings`
+While the loader is fetching data, `pendingComponent` is displayed automatically.
 
-All protected automatically through `_authenticated`.
+```tsx
+pendingComponent: () => <div>Loading...</div>;
+```
 
-## Tech Stack
+## External API Example
 
-- React
-- TypeScript
-- TanStack Router
-- TailwindCSS
-- Vite
+This demo fetches users from:
+
+```
+https://jsonplaceholder.typicode.com/users
+```
+
+and filters them based on the search query.
+
+## Why This Is Powerful
+
+TanStack Router combines:
+
+- Routing
+- Search params
+- Validation
+- Data loading
+
+into a single route-based system. This creates a cleaner and more scalable architecture compared to `useEffect` + `useState` + `react-router`.
+
+## Production Setup
+
+In real applications, loaders are commonly combined with:
+
+- TanStack Query
+- Zod
+- Server-side rendering
+- Prefetching
+- Streaming
+
+Example:
+
+```tsx
+queryClient.ensureQueryData();
+```
+
+for caching and background refetching.
